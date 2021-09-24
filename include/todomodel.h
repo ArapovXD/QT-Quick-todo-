@@ -28,6 +28,8 @@ signals:
 public slots:
     void initData(const QString &email);
     void addTodo(const QString &email, const QString &text);
+    void updateToDo(const QString &newText, const int& index = {});
+    void deleteTodo(const int& index);
     void initReplyReadyRead();
     void addReplyReadyRead();
 

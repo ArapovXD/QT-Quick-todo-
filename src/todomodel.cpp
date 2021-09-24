@@ -1,4 +1,4 @@
-#include "todomodel.h"
+#include "include/todomodel.h"
 #include <QNetworkRequest>
 #include <QVariantMap>
 #include <QMap>
@@ -20,6 +20,14 @@ ToDoModel::ToDoModel(const QString url,
     m_getPrefix {std::move(get_p)}
 {
    m_networkManeger = new QNetworkAccessManager( this );
+
+/*
+   ToDo one("gogo", "1");
+   ToDo two("go", "2");
+
+   m_todos.push_back(one);
+   m_todos.push_back(two);
+*/
 }
 
 ToDoModel::~ToDoModel()
@@ -66,7 +74,6 @@ int ToDoModel::rowCount(const QModelIndex& parent) const
 
 void ToDoModel::initData(const QString &email)
 {
-    beginInsertRows(QModelIndex(), m_todos.size(), m_todos.size());
     QString url = m_baseUrl + m_getPrefix + "/" + email;
 
     m_networkReply = m_networkManeger->get(QNetworkRequest(QUrl(url)));
@@ -75,8 +82,6 @@ void ToDoModel::initData(const QString &email)
 
 void ToDoModel::addTodo(const QString &email, const QString &text)
 {
-    beginInsertRows(QModelIndex(), m_todos.size(), m_todos.size());
-
     QVariantMap data;
     data["email"] = email;
     data["todo"] = text;
@@ -86,6 +91,38 @@ void ToDoModel::addTodo(const QString &email, const QString &text)
     newRequest.setHeader( QNetworkRequest::ContentTypeHeader, QString( "application/json"));
     m_networkReply = m_networkManeger->post( newRequest, jsonPayload.toJson());
     connect( m_networkReply, &QNetworkReply::readyRead, this, &ToDoModel::addReplyReadyRead);
+}
+
+void ToDoModel::updateToDo(const QString &newText, const int& index)
+{
+    m_todos.at(index).setText(newText);
+
+    QModelIndex mIndex = createIndex(index, 0, static_cast<void *>(0));
+    emit dataChanged(mIndex, mIndex);
+
+    QVariantMap data;
+    data["id"] = m_todos.at(index).getId();
+    data["todo"] = newText;
+    QJsonDocument jsonPayload = QJsonDocument::fromVariant(data);
+
+    QNetworkRequest newRequest( (QUrl( m_baseUrl + m_updatePrefix )) );
+    newRequest.setHeader( QNetworkRequest::ContentTypeHeader, QString( "application/json"));
+    m_networkManeger->post( newRequest, jsonPayload.toJson());
+}
+
+void ToDoModel::deleteTodo(const int &index)
+{
+    QVariantMap data;
+    data["id"] = m_todos.at(index).getId();
+    QJsonDocument jsonPayload = QJsonDocument::fromVariant(data);
+
+    beginRemoveRows(QModelIndex(), index, index);
+    m_todos.erase(m_todos.begin() + index);
+    endRemoveRows();
+
+    QNetworkRequest newRequest( (QUrl( m_baseUrl + m_deletePrefix )) );
+    newRequest.setHeader( QNetworkRequest::ContentTypeHeader, QString( "application/json"));
+    m_networkManeger->post( newRequest, jsonPayload.toJson());
 }
 
 void ToDoModel::initReplyReadyRead()
@@ -100,20 +137,17 @@ void ToDoModel::addReplyReadyRead()
 {
 
     QByteArray response = m_networkReply->readAll();
+    m_networkReply->deleteLater();
     QJsonDocument jsonDocument = QJsonDocument::fromJson(response);
     QJsonObject obj = jsonDocument.object();
 
     QString text = obj["todo"].toString();
     QString id = obj["id"].toString();
 
+    beginInsertRows(QModelIndex(), m_todos.size(), m_todos.size());
     ToDo todo(text, id);
     m_todos.push_back(todo);
-
-    qDebug() << m_todos.size();
-
     endInsertRows();
-    QModelIndex index = createIndex(0, 0, static_cast<void *>(0));
-    emit dataChanged(index, index);
 }
 
 
@@ -122,6 +156,9 @@ void ToDoModel::parseResponse(const QByteArray &response)
     QJsonDocument jsonDocument = QJsonDocument::fromJson(response);
     QJsonArray jsonArray = jsonDocument.array();
 
+    if (jsonArray.size() == 0) return;
+
+    beginInsertRows(QModelIndex(), m_todos.size(), m_todos.size() + jsonArray.size() - 1);
     for (auto it: jsonArray){
         QJsonObject obj = it.toObject();
         QString text = obj["todo"].toString();
@@ -133,8 +170,4 @@ void ToDoModel::parseResponse(const QByteArray &response)
     }
 
     endInsertRows();
-
-    QModelIndex index = createIndex(0, 0, static_cast<void *>(0));
-    emit dataChanged(index, index);
-
 }

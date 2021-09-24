@@ -14,7 +14,8 @@ Rectangle {
         anchors.centerIn: parent
 
         property bool loginSelected: true
-        property var colors: ["#e3e8e8", "#909191"]
+        property var borderColors: ["#e3e8e8", "black"]
+        property var navigateColors: ["white", "#53dbcb"]
 
 
         Row {
@@ -32,6 +33,7 @@ Rectangle {
                 id: loginNavigate
                 width: parent.width / 2
                 height: parent.height
+                color: content_.navigateColors[Number(content_.loginSelected)]
 
                 Text {
                     id: loginNavigateTxt_
@@ -44,7 +46,7 @@ Rectangle {
                     id: loginNavigateBorder_
                     width: parent.width
                     height: 2
-                    color: content_.colors[Number(content_.loginSelected)]
+                    color: content_.borderColors[Number(content_.loginSelected)]
                     anchors.bottom: parent.bottom
                 }
 
@@ -59,6 +61,7 @@ Rectangle {
                 id: signupNavigate
                 width: parent.width / 2
                 height: parent.height
+                color: content_.navigateColors[Number(!content_.loginSelected)]
                 Text {
                     id: signUpNavigateTxt_
                     text: "Sign Up"
@@ -70,7 +73,7 @@ Rectangle {
                     id: signUpNavigateBorder_
                     width: parent.width
                     height: 2
-                    color: content_.colors[Number(!content_.loginSelected)]
+                    color: content_.borderColors[Number(!content_.loginSelected)]
                     anchors.bottom: parent.bottom
                 }
 
@@ -102,6 +105,7 @@ Rectangle {
                 id: passwordInput_
                 anchors.left: parent.left
                 anchors.right: parent.right
+                echoMode: TextInput.Password
                 font.pixelSize: 20
                 placeholderText: "Password"
                 wrapMode: TextField.WordWrap
@@ -147,6 +151,7 @@ Rectangle {
                 id: passwordInput2_
                 anchors.left: parent.left
                 anchors.right: parent.right
+                echoMode: TextInput.Password
                 font.pixelSize: 20
                 placeholderText: "Password"
                 wrapMode: TextField.WordWrap
@@ -156,6 +161,7 @@ Rectangle {
                 id: confirmPasswordInput2_
                 anchors.left: parent.left
                 anchors.right: parent.right
+                echoMode: TextInput.Password
                 font.pixelSize: 20
                 placeholderText: "Confirm password"
                 wrapMode: TextField.WordWrap

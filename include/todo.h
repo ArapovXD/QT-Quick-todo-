@@ -9,6 +9,7 @@ public:
     ToDo(QString text, QString id);
     QString getText() const;
     QString getId() const;
+    void setText(const QString &newText);
 
 private:
     QString text;

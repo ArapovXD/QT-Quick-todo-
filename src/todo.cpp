@@ -1,4 +1,4 @@
-#include "todo.h"
+#include "./include/todo.h"
 
 ToDo::ToDo(QString text, QString id) :
     text {std::move(text)},
@@ -18,4 +18,7 @@ QString ToDo::getId() const
 }
 
 
-
+void ToDo::setText(const QString &newText)
+{
+    text = newText;
+}

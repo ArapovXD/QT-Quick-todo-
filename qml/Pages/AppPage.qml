@@ -115,6 +115,10 @@ Rectangle {
                         MouseArea {
                             id: editBtnArea_
                             anchors.fill: parent
+
+                            onClicked: {
+                                todoContentText_.readOnly = false
+                            }
                         }
                     }
 
@@ -123,16 +127,23 @@ Rectangle {
                         width: parent.width * 2 / 3
                         height: parent.height
 
-                        Text {
+
+                        TextField {
                             id: todoContentText_
                             text: model.text
                             anchors.centerIn: parent
+                            horizontalAlignment: TextInput.AlignHCenter
                             font.pixelSize: 20
-                        }
+                            maximumLength: 30
+                            readOnly: true
 
-                        MouseArea {
-                            id: todoContentArea_
-                            anchors.fill: parent
+                            Connections {
+                                target: todoContentText_
+                                onAccepted: {
+                                    todoModel.updateToDo(todoContentText_.displayText, model.index)
+                                    todoContentText_.readOnly = true
+                                }
+                            }
                         }
                     }
 
@@ -151,6 +162,7 @@ Rectangle {
                         MouseArea {
                             id: deleteBtnArea_
                             anchors.fill: parent
+                            onClicked: todoModel.deleteTodo(model.index)
                         }
                     }
                 }
